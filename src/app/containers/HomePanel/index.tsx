@@ -1,0 +1,219 @@
+'use client'
+import React, { useState } from "react";
+import { useLiveQuery } from "dexie-react-hooks";
+import { Box, Button, Container, Flex, Group, NumberInput, Select, Table, Text, Title } from "@mantine/core";
+import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
+import { SHAMSI_MONTHS } from "@/app/constants/months";
+import { db } from "@/app/utils/db";
+import IRecord from "@/app/lib/models/record/type";
+import TableRow from "@/app/components/HomeTable/TableRow";
+import { createRecord, editRecord, getRecord } from "@/app/lib/models/record";
+import { IButtonState } from "@/app/types";
+
+export interface HomePanelProps {
+}
+
+export default function HomePanel({}: HomePanelProps) {
+    const [isLoading, setLoading] = useState(false);
+    const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
+    const [records, setRecords] = useState<IRecord[]>([]);
+    const [editMode, setEditMode] = useState(false);
+    const [year, setYear] = useState<number | null>(null);
+    const [month, setMonth] = useState<typeof SHAMSI_MONTHS[number] | null>(null);
+
+    const updateRecords = (record: IRecord) => {
+        setRecords(records => {
+            const updated = [...records];
+            const recordIndex = updated.findIndex(r => r._id === record._id);
+            if (recordIndex > -1) {
+                updated[recordIndex] = {...updated[recordIndex], ...record};
+            }
+            console.log(updated);
+            return updated;
+        })
+    }
+
+    const onSearchClickHandler = async (e: React.FormEvent) => { 
+        setLoading(true);
+        try {
+            e.preventDefault();
+            if (month && year) {
+                const _m = SHAMSI_MONTHS.findIndex(item => item === month);
+                console.log(month, _m, year);
+                const recs = await getRecord(_m, year);
+                if (recs) {
+                    setRecords(recs);
+                }
+                setEditMode(true);
+                setBtnState({color: 'green', icon: <IconCheck size={16}/>});
+            }
+        } catch (error) {
+            console.error(error);
+            setBtnState({color: 'red', icon: <IconExclamationCircle size={16} />});
+        }
+        setLoading(false);
+        setTimeout(() => {
+            setBtnState({color: undefined, icon: undefined});
+        }, 1000);
+    }
+
+    const onRecordSubmit = async (e: React.FormEvent) => {
+        setLoading(true);
+        try {
+            e.preventDefault();
+            await Promise.all(records.map(async (r) => {
+                if (editMode) {
+                    return await editRecord(r);
+                } else {
+                    return await createRecord(r);
+                }
+            }));
+            setBtnState({color: 'green', icon: <IconCheck size={16}/>});
+        } catch (error) {
+            console.error(error);
+            setBtnState({color: 'red', icon: <IconExclamationCircle size={16} />});
+        }
+        setLoading(false);
+        setTimeout(() => {
+            setBtnState({color: undefined, icon: undefined});
+        }, 1000);
+    }
+
+    const onNewRecordClickHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (month && year) {
+            const _m = SHAMSI_MONTHS.findIndex(item => item === month);
+            try {
+                const recs = await getRecord(_m, year);
+                console.log(recs);
+                if (recs && recs.length > 0) {
+                    alert('گزارش این ماه قبلا ایجاد شده‌است!');
+                    return;
+                }
+            } catch (error) {
+                console.error(error);
+            }
+            const defaultRecords = programs?.map(program => {
+                const values = program.cols.map(col => {
+                    const column = columns?.find(c => c._id === col);
+                    if (column) {
+                        return ({column_id: col, column_title: column.title, value: 0})
+                    }
+                });
+                return ({
+                    _id: Math.floor(Math.random() * Date.now()).toString(),
+                    program: program._id,
+                    currentCode: program.code,
+                    date: (new Date()).toISOString(),
+                    month: SHAMSI_MONTHS.findIndex(item => item === month),
+                    year: year || 0,
+                    budget: 0,
+                    netIncome: 0,
+                    prevIncome: 0,
+                    totalDeduction: 0,
+                    totalIncome: 0,
+                    values: values.length ? values : [],
+                })
+            }, [month, year]);
+
+            if (defaultRecords) {
+                setRecords(defaultRecords as IRecord[]);
+                setEditMode(false);
+            }
+        }
+    }
+    
+    const programs = useLiveQuery(async () => await db.programs.toArray());
+    const columns = useLiveQuery(async () => await db.columns.toArray());
+    const categories = useLiveQuery(async () => await db.categories.toArray());
+    return (
+        <Container fluid>
+            <form onSubmit={onSearchClickHandler}>
+                <Flex align={'end'} gap={'md'}>
+                    <Box>
+                        <NumberInput maxLength={4} minLength={4}
+                            label='سال'
+                            placeholder="1404"
+                            onChange={setYear}
+                            />
+                    </Box>
+                    <Box>
+                        <Select
+                            label='ماه'
+                            placeholder="فروردین، اردیبهشت و..."
+                            data={SHAMSI_MONTHS}
+                            onChange={setMonth}
+                        />
+                    </Box>
+                    <Box>
+                        <Group>
+                            <Button type="submit" 
+                                loading={isLoading} 
+                                color={btnState.color} 
+                                rightSection={btnState.icon}
+                                disabled={!year || !month} >نمایش</Button>
+                            <Button 
+                                variant="transparent"
+                                disabled={!year || !month || (records && records.length > 0)}
+                                onClick={onNewRecordClickHandler}>گزارش جدید</Button>
+                        </Group>
+                    </Box>
+                </Flex>
+            </form>
+            <form onSubmit={onRecordSubmit}>
+                {
+                    records && records.length > 0 ?
+                    categories?.map(cat => {
+                        const _programs = programs?.filter(p => p.type === cat._id);
+                        const _records = records.filter(r => _programs?.find(p => p._id === r.program));
+                            return (<React.Fragment key={cat._id}>
+                                <Title order={2} mt={'md'}>{cat.title}</Title>
+                                <Table.ScrollContainer minWidth={1500}>
+                                    <Table>
+                                        <Table.Thead>
+                                            <Table.Tr>
+                                                <Table.Th>ردیف</Table.Th>
+                                                <Table.Th>شرح</Table.Th>
+                                                <Table.Th>شناسه تعهدی</Table.Th>
+                                                <Table.Th>ورودی</Table.Th>
+                                                {columns?.map(col => <Table.Th key={col._id}>{col.title}</Table.Th>)}
+                                                <Table.Th>جمع کسورات</Table.Th>
+                                                <Table.Th>خالص درآمد فعلی</Table.Th>
+                                                <Table.Th>شناسه برنامه</Table.Th>
+                                            </Table.Tr>
+                                        </Table.Thead>
+                                        <Table.Tbody>
+                                            {_records.map((record, i) => {
+                                                const program = programs?.find(p => p._id === record.program);
+                                                if (program) {
+                                                    return <TableRow 
+                                                        key={record._id}
+                                                        index={i + 1}
+                                                        columns={columns}
+                                                        program={program}
+                                                        record={record}
+                                                        updateHandler={updateRecords} />
+                                                }
+                                            })}
+                                        </Table.Tbody>
+                                    </Table>
+                                </Table.ScrollContainer>
+                            </React.Fragment>)
+                    })
+                    :
+                        <Text mt={200}ta={'center'}>داده‌ای برای نمایش وجود ندارد!</Text>
+                }
+                { records && records.length > 0 &&
+                    <Button type="submit"
+                        mt={'md'}
+                        loading={isLoading} 
+                        color={btnState.color} 
+                        rightSection={btnState.icon}
+                        fullWidth>
+                        ثبت
+                    </Button>
+                }
+            </form>
+        </Container>
+    );
+}
