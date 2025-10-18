@@ -1,4 +1,4 @@
-import { db } from '../../../utils/db';
+import { db } from '@/app/utils/db';
 import type IColumn from './type';
 import type { IColumnNewObj } from './type';
 

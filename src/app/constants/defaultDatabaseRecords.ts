@@ -48,7 +48,7 @@ export const DEFAULT_PROGRAMS: IProgram[] = [
         code: '30751',
         cols: ['1', '2', '3', '4'],
         programCode: '160100500n',
-        title: 'ارائه خدمات بهداشت روستایی آغاجاری',
+        title: 'ارائه خدمات بهداشت روستایی (بیمه روستایی) صندوق',
         type: '2',
     },
     {
@@ -56,7 +56,7 @@ export const DEFAULT_PROGRAMS: IProgram[] = [
         code: '30742',
         cols: ['1', '2', '3', '4'],
         programCode: '160100500n',
-        title: 'ارائه خدمات بهداشت روستایی (بیمه روستایی) آغاجاری',
+        title: 'ارائه خدمات بهداشت روستایی آغاجاری',
         type: '2',
     },
     {

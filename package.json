@@ -16,12 +16,14 @@
     "dexie": "^4.2.1",
     "dexie-react-hooks": "^4.2.0",
     "dexie-relationships": "^1.2.11",
+    "file-saver": "^2.0.5",
     "jalali-moment": "^3.3.11",
     "next": "15.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "uuid": "^13.0.0",
-    "vazirmatn": "^33.0.3"
+    "vazirmatn": "^33.0.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
