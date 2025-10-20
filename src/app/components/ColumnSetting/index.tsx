@@ -1,21 +1,24 @@
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Box, Button, Group, Modal, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCheck, IconExclamationCircle, IconUpload } from "@tabler/icons-react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { useForm } from "@mantine/form";
 import { createColumn, deleteColumn, editColumn } from "@/app/lib/models/column";
-import { db, loadDefaultData } from "@/app/utils/db";
+import { loadDefaultData } from "@/app/utils/";
 import ColumnsTable from "./ColumnsTable";
 import ColumnsForm, { IColumnForm } from "./ColumnsForm";
 import type IColumn from "@/app/lib/models/column/type";
 import type { IColumnNewObj } from "@/app/lib/models/column/type";
 import type { IButtonState } from "@/app/types";
+import axios from "axios";
 
 export interface ColumnSettingProps {
+    columns: IColumn[] | null
+    setColumnsData: Dispatch<SetStateAction<IColumn[] | null>>;
 }
 
-export default function ColumnSetting({}: ColumnSettingProps) {
+export default function ColumnSetting({ columns: columnsData, setColumnsData }: ColumnSettingProps) {
     const [opened, {open, close}] = useDisclosure(false);
 
     const modalOnCloseHandler = () => {
@@ -27,8 +30,19 @@ export default function ColumnSetting({}: ColumnSettingProps) {
     const [isLoading, setLoading] = useState(false);
     const [editMode, setEditMode] = useState<string | null>(null);
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
+    // const [columnsData, setColumnsData] = useState<IColumn[]>([]);
 
-    const columnsData = useLiveQuery(() => db.columns.toArray());
+    // useEffect(() => {
+    //     axios.get('/api/column', { params: { filter: {} }})
+    //         .then(res => {
+    //             setColumnsData(res.data.column);
+    //         })
+    //         .catch(err => {
+    //             console.error(err);
+    //         });
+    // }, []);
+
+    // const columnsData = useLiveQuery(() => db.columns.toArray());
 
     const columnForm = useForm<IColumnForm>({
         mode: 'controlled',
@@ -63,18 +77,22 @@ export default function ColumnSetting({}: ColumnSettingProps) {
         }
     }
 
-    const columnDeleteOnClickHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const columnDeleteOnClickHandler = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         const id = e.currentTarget.getAttribute('data-id');
         if (id && columnsData) {
-            console.log('delete', id);
             const index = columnsData.findIndex(col => 
                 col._id === id);
-            console.log('delete index', index);
             if (index > -1) {
-                deleteColumn(id)
-                    .then(() => console.log('deleted!'))
-                    .catch(err => console.error(err));
+                const res = await deleteColumn(id)
+                if (res && res.data.column) {
+                    setColumnsData(s => {
+                        if (!s) return s;
+                        const updated = [...s];
+                        updated.splice(index, 1);
+                        return updated;
+                    })
+                }
             }
         }
     }
@@ -83,9 +101,25 @@ export default function ColumnSetting({}: ColumnSettingProps) {
         setLoading(true);
         try {
             if (editMode) {
-                await editColumn({...(values as IColumn), _id: editMode });
+                const res = await editColumn({...(values as IColumn), _id: editMode });
+                if (res && res.data.column) {
+                    setColumnsData(s => {
+                        const updated = s ? [...s] : [];
+                        const index = updated.findIndex(col => col._id === editMode);
+                        if (index > -1) {
+                            updated[index] = {...res.data.column};
+                        }
+                        return updated;
+                    })
+                }
             } else {
-                await createColumn(values as IColumnNewObj);
+                const res = await createColumn(values as IColumnNewObj);
+                if (res && res.data.column) {
+                    setColumnsData(s => {
+                        if (!s) return s;
+                        return ([...s, res.data.column])
+                    })
+                }
             }
             setBtnState({color: 'green', icon: <IconCheck size={16} />});
             console.log(values);
@@ -100,7 +134,19 @@ export default function ColumnSetting({}: ColumnSettingProps) {
 
     const columnLoadDefaultOnClickHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        loadDefaultData('column');
+        setLoading(true);
+        loadDefaultData('column')
+            .then(res => {
+                if (res && res.data.columns) {
+                    setColumnsData(res.data.columns);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }
 
     return (
@@ -126,7 +172,7 @@ export default function ColumnSetting({}: ColumnSettingProps) {
                     data={columnsData} 
                     editHandler={columnEditOnClickHandler}
                     deleteHandler={columnDeleteOnClickHandler}/>
-                <Button onClick={columnLoadDefaultOnClickHandler} mt={'md'} leftSection={<IconUpload size={20} />}>
+                <Button loading={isLoading} onClick={columnLoadDefaultOnClickHandler} mt={'md'} leftSection={<IconUpload size={20} />}>
                     بارگیری اطلاعات پیش فرض
                 </Button>
             </Box>

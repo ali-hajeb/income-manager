@@ -5,7 +5,7 @@ import { toFarsiNumber } from '@/app/utils/number';
 import { IconPencil, IconTrash } from '@tabler/icons-react';
 
 export interface ColumnsTableProps {
-    data?: IColumn[];
+    data: IColumn[] | null;
     editHandler?: React.MouseEventHandler<HTMLButtonElement> | undefined;
     deleteHandler?: React.MouseEventHandler<HTMLButtonElement> | undefined;
 }

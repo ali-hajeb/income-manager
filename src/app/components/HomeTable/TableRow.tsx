@@ -7,12 +7,13 @@ import type IProgram from '@/app/lib/models/program/type';
 import type IRecord from '@/app/lib/models/record/type';
 import type IColumn from "@/app/lib/models/column/type";
 import { ICellValue } from "@/app/lib/models/record/type";
+import { IProgramPopulated } from "@/app/lib/models/program/type";
 
 export interface TableRowProps {
     index: number;
-    program?: IProgram;
+    program?: IProgramPopulated;
     record?: IRecord;
-    columns?: IColumn[];
+    columns: IColumn[] | null;
     updateHandler: (record: IRecord) => void;
 }
 

@@ -1,3 +1,5 @@
+import { Schema } from 'mongoose';
+
 export interface ICellValue {
     column_id: string;
     column_title: string;
@@ -5,7 +7,7 @@ export interface ICellValue {
 }
 
 export interface IRecordNewObj {
-    program: string;
+    program: string | Schema.Types.ObjectId;
     currentCode: string;
     date: string;
     year: number;

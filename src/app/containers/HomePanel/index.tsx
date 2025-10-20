@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Box, Button, Container, Flex, Group, NumberInput, Select, Table, Text, Title } from "@mantine/core";
 import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
@@ -9,6 +9,11 @@ import IRecord from "@/app/lib/models/record/type";
 import TableRow from "@/app/components/HomeTable/TableRow";
 import { createRecord, editRecord, getRecord } from "@/app/lib/models/record";
 import { IButtonState } from "@/app/types";
+import { insertManyRecords } from "@/app/lib/models/record/controllers";
+import IColumn from "@/app/lib/models/column/type";
+import { IProgramPopulated } from "@/app/lib/models/program/type";
+import ICategory from "@/app/lib/models/category/type";
+import axios from "axios";
 
 export interface HomePanelProps {
 }
@@ -41,8 +46,8 @@ export default function HomePanel({}: HomePanelProps) {
                 const _m = SHAMSI_MONTHS.findIndex(item => item === month);
                 console.log(month, _m, year);
                 const recs = await getRecord(_m, year);
-                if (recs) {
-                    setRecords(recs);
+                if (recs && recs.data.record) {
+                    setRecords(recs.data.record);
                 }
                 setEditMode(true);
                 setBtnState({color: 'green', icon: <IconCheck size={16}/>});
@@ -61,13 +66,29 @@ export default function HomePanel({}: HomePanelProps) {
         setLoading(true);
         try {
             e.preventDefault();
-            await Promise.all(records.map(async (r) => {
-                if (editMode) {
-                    return await editRecord(r);
-                } else {
-                    return await createRecord(r);
+            if (editMode) {
+                const res = await editRecord(records);
+                if (res && res.data.records) {
+                    setRecords(res.data.records)
                 }
-            }));
+            } else {
+                const _recs = records.map(r => {
+                    const {_id, ...data} = r;
+                    return data;
+                });
+                const res = await insertManyRecords(_recs);
+                if (res && res.data.records) {
+                    setRecords(res.data.records)
+                    setEditMode(true);
+                }
+            }
+            // await Promise.all(records.map(async (r) => {
+            //     if (editMode) {
+            //         return await editRecord(r);
+            //     } else {
+            //         return await createRecord(r);
+            //     }
+            // }));
             setBtnState({color: 'green', icon: <IconCheck size={16}/>});
         } catch (error) {
             console.error(error);
@@ -86,22 +107,22 @@ export default function HomePanel({}: HomePanelProps) {
             try {
                 const recs = await getRecord(_m, year);
                 console.log(recs);
-                if (recs && recs.length > 0) {
+                if (recs && recs.data.record.length > 0) {
                     alert('گزارش این ماه قبلا ایجاد شده‌است!');
                     return;
                 }
             } catch (error) {
                 console.error(error);
             }
-            const defaultRecords = programs?.map(program => {
+            const defaultRecords = programs?.map((program, idx) => {
                 const values = program.cols.map(col => {
-                    const column = columns?.find(c => c._id === col);
+                    const column = columns?.find(c => c._id === col._id);
                     if (column) {
-                        return ({column_id: col, column_title: column.title, value: 0})
+                        return ({column_id: column._id, column_title: column.title, value: 0})
                     }
                 });
                 return ({
-                    _id: Math.floor(Math.random() * Date.now()).toString(),
+                    _id: idx.toString(),
                     program: program._id,
                     currentCode: program.code,
                     date: (new Date()).toISOString(),
@@ -123,9 +144,51 @@ export default function HomePanel({}: HomePanelProps) {
         }
     }
     
-    const programs = useLiveQuery(async () => await db.programs.toArray());
-    const columns = useLiveQuery(async () => await db.columns.toArray());
-    const categories = useLiveQuery(async () => await db.categories.toArray());
+    const [columns, setColumns] = useState<IColumn[] | null>(null);
+    const [categories, setCategories] = useState<ICategory[] | null>(null);
+    const [programs, setPrograms] = useState<IProgramPopulated[] | null>(null);
+
+    useEffect(() => {
+        axios.get('/api/column')
+            .then((res) => {
+                if (res.data && res.data.column) {
+                    setColumns(res.data.column);
+                }
+            })
+            .catch((err) => {
+                console.log("setting>column", err);
+            })
+            .finally(() => {
+            });
+
+        axios.get('/api/category')
+            .then((res) => {
+                if (res.data && res.data.category) {
+                    setCategories(res.data.category);
+                }
+            })
+            .catch((err) => {
+                console.log("setting>category", err);
+            })
+            .finally(() => {
+            });
+
+        axios.get('/api/program')
+            .then((res) => {
+                if (res.data && res.data.program) {
+                    console.log('prog', res.data.program);
+                    setPrograms(res.data.program);
+                }
+            })
+            .catch((err) => {
+                console.log("setting>program", err);
+            })
+            .finally(() => {
+            });
+    }, []);
+    // const programs = useLiveQuery(async () => await db.programs.toArray());
+    // const columns = useLiveQuery(async () => await db.columns.toArray());
+    // const categories = useLiveQuery(async () => await db.categories.toArray());
     return (
         <Container fluid>
             <form onSubmit={onSearchClickHandler}>
@@ -164,7 +227,7 @@ export default function HomePanel({}: HomePanelProps) {
                 {
                     records && records.length > 0 ?
                     categories?.map(cat => {
-                        const _programs = programs?.filter(p => p.type === cat._id);
+                        const _programs = programs?.filter(p => p.type._id === cat._id);
                         const _records = records.filter(r => _programs?.find(p => p._id === r.program));
                             return (<React.Fragment key={cat._id}>
                                 <Title order={2} mt={'md'}>{cat.title}</Title>
@@ -187,7 +250,7 @@ export default function HomePanel({}: HomePanelProps) {
                                                 const program = programs?.find(p => p._id === record.program);
                                                 if (program) {
                                                     return <TableRow 
-                                                        key={record._id}
+                                                        key={i}
                                                         index={i + 1}
                                                         columns={columns}
                                                         program={program}

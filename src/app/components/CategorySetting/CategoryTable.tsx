@@ -5,7 +5,7 @@ import type ICategory from '@/app/lib/models/category/type';
 import { Pill } from '../Pill';
 
 export interface CategoryTableProps {
-    data?: ICategory[];
+    data: ICategory[] | null;
     editHandler?: React.MouseEventHandler<HTMLButtonElement> | undefined;
     deleteHandler?: React.MouseEventHandler<HTMLButtonElement> | undefined;
 }

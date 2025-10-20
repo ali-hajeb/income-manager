@@ -14,8 +14,8 @@ export interface IProgramForm {
 
 export interface ProgramFormProps extends React.PropsWithChildren {
     form: UseFormReturnType<IProgramForm, (values: IProgramForm) => IProgramForm>;
-    columnList?: IColumn[];
-    categoryList?: string[];
+    columnList: IColumn[] | null;
+    categoryList: string[] | null;
     submitHandler?: (values: IProgramForm) => Promise<void>;
 }
 

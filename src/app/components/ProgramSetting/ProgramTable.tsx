@@ -43,7 +43,7 @@ export default function ProgramTable({
                             <Text fz={'sm'}>{program.title}</Text>
                         </Table.Td>
                         <Table.Td>
-                            <Text fz={'sm'}>{program.type.title}</Text>
+                            <Text fz={'sm'}>{program.type && program.type.title}</Text>
                         </Table.Td>
                         <Table.Td>
                             <Group wrap='nowrap'>
