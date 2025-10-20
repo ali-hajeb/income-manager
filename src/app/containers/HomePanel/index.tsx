@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
 import { Box, Button, Container, Flex, Group, NumberInput, Select, Table, Text, Title } from "@mantine/core";
-import { IconCheck, IconExclamationCircle } from "@tabler/icons-react";
+import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
 import { SHAMSI_MONTHS } from "@/app/constants/months";
 import { db } from "@/app/utils/db";
 import IRecord from "@/app/lib/models/record/type";
@@ -189,6 +189,114 @@ export default function HomePanel({}: HomePanelProps) {
     // const programs = useLiveQuery(async () => await db.programs.toArray());
     // const columns = useLiveQuery(async () => await db.columns.toArray());
     // const categories = useLiveQuery(async () => await db.categories.toArray());
+
+    const printRecord = () => {
+        let colCount = 0;
+        let defaultCols = {};
+
+        let headers = {
+            // 0: 'ردیف',
+            1: 'دسته',
+            2: 'شناسه برنامه',
+            3: 'شرح',
+            4: 'شناسه تعهدی',
+            5: 'ورودی',
+        };
+
+        if (columns) {
+            for (const col in columns) {
+                headers = {...headers, [columns[col]._id + 6]: columns[col].title };
+                defaultCols = {...defaultCols, [columns[col]._id + 6]: 0 };
+                colCount++;
+            }
+        }
+
+        headers = {...headers,
+            99: 'جمع کسورات',
+            100: 'خالص درآمدی فعلی',
+        }
+
+        console.log("headers", headers);
+
+        const standardData = records.map((r, index) => {
+            const program = programs?.find(p => p._id === r.program);
+            if (program) {
+                const category = categories?.find(c => c._id === program.type)?.title || program.type.toString();
+
+                let d = {
+                    // 0: index + 1,
+                    1: category,
+                    2: program.programCode,
+                    3: program.title,
+                    4: program.code,
+                    5: r.budget,
+                    ...defaultCols,
+                    99: r.totalDeduction,
+                    100: r.netIncome,
+                };
+
+                for (const col in r.values) {
+                    d = {...d, [r.values[col].column_id + colCount]: r.values[col].value};
+                }
+
+                console.log("data", d);
+                
+                return d;
+            }
+        });
+
+        standardData.sort((a, b) => a?.[1].localeCompare(b?.[1]));
+
+        const worksheet = XLSX.utils.json_to_sheet(standardData);
+        const range = XLSX.utils.decode_range(worksheet['!ref'] as string);
+
+        Object.keys(headers).forEach((key, index) => {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: index });
+            if (worksheet[cellAddress]) {
+                worksheet[cellAddress].v = headers[key];
+                worksheet[cellAddress].s = {
+                    font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } }, // White, bold, 12pt font
+                    fill: { fgColor: { rgb: "4F81BD" } }, // Blue background
+                    alignment: { horizontal: "center", vertical: "center" },
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };   
+            }
+        });
+
+        for (let row = range.s.r + 1; row <= range.e.r; row++) {
+            for (let col = range.s.c; col <= range.e.c; col++) {
+                const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+                if (worksheet[cellAddress]) {
+                    worksheet[cellAddress].s = {
+                        alignment: { 
+                            vertical: "center",
+                        },
+                        border: {
+                            top: { style: "thin", color: { rgb: "000000" } },
+                            bottom: { style: "thin", color: { rgb: "000000" } },
+                            left: { style: "thin", color: { rgb: "000000" } },
+                            right: { style: "thin", color: { rgb: "000000" } }
+                        }
+                    };
+                }
+            }
+        }
+
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+        
+        // Write the workbook to a binary string
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+
+        const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(blob, "report.xlsx");
+    }
+
     return (
         <Container fluid>
             <form onSubmit={onSearchClickHandler}>
@@ -210,6 +318,15 @@ export default function HomePanel({}: HomePanelProps) {
                     </Box>
                     <Box>
                         <Group>
+                            {
+                                records && records.length > 0 &&
+                                    <Button
+                                        w={48}
+                                        p={0} m={0}
+                                        onClick={printRecord}>
+                                    <IconPrinter size={24}/>
+                                    </Button>
+                            }
                             <Button type="submit" 
                                 loading={isLoading} 
                                 color={btnState.color} 
