@@ -125,6 +125,7 @@ export default function TableRow({
                 data-id={record?._id}
                 value={currentCode}
                 onChange={onCurrentCodeChangeHandler}
+                onBlur={onBudgetCalcHandler}
             />
         </Table.Td>
         <Table.Td>

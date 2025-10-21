@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Box, Button, Container, Flex, Group, NumberInput, Select, Table, Text, Title } from "@mantine/core";
+import { Box, Button, Container, Flex, Group, NumberFormatter, NumberInput, Select, Table, Text, Title } from "@mantine/core";
 import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
 import { saveAs } from "file-saver";
 import * as XLSX from 'xlsx';
@@ -314,6 +314,45 @@ export default function HomePanel({}: HomePanelProps) {
                                                 }
                                             })}
                                         </Table.Tbody>
+                                        <Table.Tfoot>
+                                            <Table.Tr>
+                                                <Table.Td></Table.Td>
+                                                <Table.Td></Table.Td>
+                                                <Table.Td>
+                                                    <Text fw={'bold'}>مجموع</Text>
+                                                </Table.Td>
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.budget, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                                {columns?.map(col => <Table.Td key={col._id}>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => {
+                                                            const value = curRec.values.find(c => c.column_id === col._id);
+                                                            if (value) {
+                                                                return sum + parseFloat(value.value as string);
+                                                            }
+                                                            return sum;
+                                                        }, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>)}
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.totalDeduction, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.netIncome, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                            </Table.Tr>
+                                        </Table.Tfoot>
                                     </Table>
                                 </Table.ScrollContainer>
                             </React.Fragment>)
