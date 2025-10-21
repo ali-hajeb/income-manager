@@ -1,13 +1,13 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { useLiveQuery } from "dexie-react-hooks";
-import { Box, Button, Container, Flex, Group, NumberInput, Select, Table, Text, Title } from "@mantine/core";
+import { Box, Button, Container, Flex, Group, NumberFormatter, NumberInput, Select, Table, Text, Title } from "@mantine/core";
+import * as XLSX from 'xlsx';
 import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
+import { saveAs } from 'file-saver';
 import { SHAMSI_MONTHS } from "@/app/constants/months";
-import { db } from "@/app/utils/db";
 import IRecord from "@/app/lib/models/record/type";
 import TableRow from "@/app/components/HomeTable/TableRow";
-import { createRecord, editRecord, getRecord } from "@/app/lib/models/record";
+import { editRecord, getRecord } from "@/app/lib/models/record";
 import { IButtonState } from "@/app/types";
 import { insertManyRecords } from "@/app/lib/models/record/controllers";
 import IColumn from "@/app/lib/models/column/type";
@@ -15,10 +15,10 @@ import { IProgramPopulated } from "@/app/lib/models/program/type";
 import ICategory from "@/app/lib/models/category/type";
 import axios from "axios";
 
-export interface HomePanelProps {
-}
+// export interface HomePanelProps {
+// }
 
-export default function HomePanel({}: HomePanelProps) {
+export default function HomePanel() {
     const [isLoading, setLoading] = useState(false);
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
     const [records, setRecords] = useState<IRecord[]>([]);
@@ -204,10 +204,12 @@ export default function HomePanel({}: HomePanelProps) {
         };
 
         if (columns) {
+            let i = 6;
             for (const col in columns) {
-                headers = {...headers, [columns[col]._id + 6]: columns[col].title };
-                defaultCols = {...defaultCols, [columns[col]._id + 6]: 0 };
+                headers = {...headers, [i]: columns[col].title };
+                defaultCols = {...defaultCols, [i]: 0 };
                 colCount++;
+                i++;
             }
         }
 
@@ -221,7 +223,7 @@ export default function HomePanel({}: HomePanelProps) {
         const standardData = records.map((r, index) => {
             const program = programs?.find(p => p._id === r.program);
             if (program) {
-                const category = categories?.find(c => c._id === program.type)?.title || program.type.toString();
+                const category = categories?.find(c => c._id === program.type._id)?.title || program.type.toString();
 
                 let d = {
                     // 0: index + 1,
@@ -235,8 +237,9 @@ export default function HomePanel({}: HomePanelProps) {
                     100: r.netIncome,
                 };
 
+                let i = 6;
                 for (const col in r.values) {
-                    d = {...d, [r.values[col].column_id + colCount]: r.values[col].value};
+                    d = {...d, [i++]: parseFloat(r.values[col].value as string)};
                 }
 
                 console.log("data", d);
@@ -254,38 +257,9 @@ export default function HomePanel({}: HomePanelProps) {
             const cellAddress = XLSX.utils.encode_cell({ r: 0, c: index });
             if (worksheet[cellAddress]) {
                 worksheet[cellAddress].v = headers[key];
-                worksheet[cellAddress].s = {
-                    font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } }, // White, bold, 12pt font
-                    fill: { fgColor: { rgb: "4F81BD" } }, // Blue background
-                    alignment: { horizontal: "center", vertical: "center" },
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
-                    }
-                };   
+                console.log('header[ley]', headers[key]);
             }
         });
-
-        for (let row = range.s.r + 1; row <= range.e.r; row++) {
-            for (let col = range.s.c; col <= range.e.c; col++) {
-                const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
-                if (worksheet[cellAddress]) {
-                    worksheet[cellAddress].s = {
-                        alignment: { 
-                            vertical: "center",
-                        },
-                        border: {
-                            top: { style: "thin", color: { rgb: "000000" } },
-                            bottom: { style: "thin", color: { rgb: "000000" } },
-                            left: { style: "thin", color: { rgb: "000000" } },
-                            right: { style: "thin", color: { rgb: "000000" } }
-                        }
-                    };
-                }
-            }
-        }
 
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
@@ -376,6 +350,45 @@ export default function HomePanel({}: HomePanelProps) {
                                                 }
                                             })}
                                         </Table.Tbody>
+                                        <Table.Tfoot>
+                                            <Table.Tr>
+                                                <Table.Td></Table.Td>
+                                                <Table.Td></Table.Td>
+                                                <Table.Td>
+                                                    <Text fw={'bold'}>مجموع</Text>
+                                                </Table.Td>
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.budget, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                                {columns?.map(col => <Table.Td key={col._id}>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => {
+                                                            const value = curRec.values.find(c => c.column_id === col._id);
+                                                            if (value) {
+                                                                return sum + parseFloat(value.value as string);
+                                                            }
+                                                            return sum;
+                                                        }, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>)}
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.totalDeduction, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                                <Table.Td>
+                                                    <NumberFormatter
+                                                        style={{fontWeight: 'bold'}}
+                                                        value={_records.reduce((sum, curRec) => sum + curRec.netIncome, 0)}
+                                                        thousandSeparator />
+                                                </Table.Td>
+                                            </Table.Tr>
+                                        </Table.Tfoot>
                                     </Table>
                                 </Table.ScrollContainer>
                             </React.Fragment>)

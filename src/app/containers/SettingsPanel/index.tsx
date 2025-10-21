@@ -9,10 +9,10 @@ import type IColumn from '@/app/lib/models/column/type';
 import type ICategory from '@/app/lib/models/category/type';
 import type {IProgramPopulated} from '@/app/lib/models/program/type';
 
-export interface SettingsPanelProps {
-}
+// export interface SettingsPanelProps {
+// }
 
-export default function SettingsPanel({}: SettingsPanelProps) {
+export default function SettingsPanel() {
     const [columns, setColumns] = useState<IColumn[] | null>(null);
     const [categories, setCategories] = useState<ICategory[] | null>(null);
     const [programs, setPrograms] = useState<IProgramPopulated[] | null>(null);

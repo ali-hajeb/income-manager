@@ -5,10 +5,10 @@ import { IconSettings, IconTable } from '@tabler/icons-react';
 import SettingsPanel from '../SettingsPanel';
 import HomePanel from '../HomePanel';
 
-export interface MainPanelProps {
-}
+// export interface MainPanelProps {
+// }
 
-export default function MainPanel({}: MainPanelProps) {
+export default function MainPanel() {
     const [activeTab, setActiveTab] = useState<string | null>('monthly-report');
     return (
         <Container fluid>

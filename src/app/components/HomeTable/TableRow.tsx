@@ -92,15 +92,19 @@ export default function TableRow({
 
     const onCellChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.currentTarget) {
-            const value = e.currentTarget.value;
+            let value = parseFloat(e.currentTarget.value as string);
             const columnId = e.currentTarget.dataset.col;
-            if (value && columnId) {
+            const max = parseFloat(e.currentTarget.dataset.max as string);
+            if (max && value > max) {
+                value = max;
+            }
+            if (value > -1 && columnId) {
                 setCols(cols => {
                     if (cols) {
                         const updated = [...cols];
                         const columnIndex = updated.findIndex(col => col.column_id === columnId);
                         if (columnIndex && columnIndex > -1) {
-                            updated[columnIndex].value = parseFloat(value);
+                            updated[columnIndex].value = value;
                             return updated;
                         }
                     }
@@ -126,6 +130,7 @@ export default function TableRow({
                 data-id={record?._id}
                 value={currentCode}
                 onChange={onCurrentCodeChangeHandler}
+                onBlur={onBudgetCalcHandler}
             />
         </Table.Td>
         <Table.Td>
@@ -167,6 +172,7 @@ export default function TableRow({
                             name="values" 
                             data-id={record?._id}
                             data-col={col._id}
+                            data-max={netIncome}
                             // value={col.auto ? record.budget * col.percentage / 100 : value.value}
                             value={value.value}
                             readOnly={col.auto}
