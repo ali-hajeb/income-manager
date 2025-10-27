@@ -91,15 +91,19 @@ export default function TableRow({
 
     const onCellChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.currentTarget) {
-            const value = e.currentTarget.value;
+            let value = parseFloat(e.currentTarget.value as string);
             const columnId = e.currentTarget.dataset.col;
-            if (value && columnId) {
+            const max = parseFloat(e.currentTarget.dataset.max as string);
+            if (max && value > max) {
+                value = max;
+            }
+            if (value > -1 && columnId) {
                 setCols(cols => {
                     if (cols) {
                         const updated = [...cols];
                         const columnIndex = updated.findIndex(col => col.column_id === columnId);
                         if (columnIndex && columnIndex > -1) {
-                            updated[columnIndex].value = parseFloat(value);
+                            updated[columnIndex].value = value;
                             return updated;
                         }
                     }
@@ -118,7 +122,7 @@ export default function TableRow({
 
     return <Table.Tr>
         <Table.Td>{toFarsiNumber(index)}</Table.Td>
-        <Table.Td>{program?.title}</Table.Td>
+        <Table.Td miw={200}>{program?.title}</Table.Td>
         <Table.Td>
             <TextInput 
                 name="currentCode" 
@@ -126,6 +130,7 @@ export default function TableRow({
                 value={currentCode}
                 onChange={onCurrentCodeChangeHandler}
                 onBlur={onBudgetCalcHandler}
+                miw={80}
             />
         </Table.Td>
         <Table.Td>
@@ -137,6 +142,7 @@ export default function TableRow({
                     onChange={onBudgetChangeHandler}
                     onBlur={onBudgetCalcHandler}
                     thousandSeparator
+                    miw={120}
                 />
                 <Button 
                     name="budget"
@@ -166,6 +172,7 @@ export default function TableRow({
                             type="number"
                             name="values" 
                             data-id={record?._id}
+                            data-max={netIncome}
                             data-col={col._id}
                             // value={col.auto ? record.budget * col.percentage / 100 : value.value}
                             value={value.value}

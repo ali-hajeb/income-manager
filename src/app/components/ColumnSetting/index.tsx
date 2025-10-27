@@ -12,10 +12,10 @@ import type IColumn from "@/app/lib/models/column/type";
 import type { IColumnNewObj } from "@/app/lib/models/column/type";
 import type { IButtonState } from "@/app/types";
 
-export interface ColumnSettingProps {
-}
+// export interface ColumnSettingProps {
+// }
 
-export default function ColumnSetting({}: ColumnSettingProps) {
+export default function ColumnSetting() {
     const [opened, {open, close}] = useDisclosure(false);
 
     const modalOnCloseHandler = () => {

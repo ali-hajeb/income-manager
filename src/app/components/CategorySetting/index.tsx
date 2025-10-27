@@ -12,10 +12,10 @@ import type ICategory from "@/app/lib/models/category/type";
 import type { ICategoryNewObj } from "@/app/lib/models/category/type";
 import type { IButtonState } from "@/app/types";
 
-export interface CategorySettingProps {
-}
+// export interface CategorySettingProps {
+// }
 
-export default function CategorySetting({}: CategorySettingProps) {
+export default function CategorySetting() {
     const [opened, {open, close}] = useDisclosure(false);
 
     const [isLoading, setLoading] = useState(false);

@@ -1,8 +1,8 @@
 'use client'
 import React, { useState } from "react";
 import { useLiveQuery } from "dexie-react-hooks";
-import { Box, Button, Container, Flex, Group, NumberFormatter, NumberInput, Select, Table, Text, Title } from "@mantine/core";
-import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
+import { Box, Button, Container, Flex, Group, Modal, NumberFormatter, NumberInput, Select, Table, Text, TextInput, Title } from "@mantine/core";
+import { IconCheck, IconExclamationCircle, IconFileExcel, IconPrinter } from "@tabler/icons-react";
 import { saveAs } from "file-saver";
 import * as XLSX from 'xlsx';
 import { SHAMSI_MONTHS } from "@/app/constants/months";
@@ -11,17 +11,26 @@ import IRecord from "@/app/lib/models/record/type";
 import TableRow from "@/app/components/HomeTable/TableRow";
 import { createRecord, editRecord, getRecord } from "@/app/lib/models/record";
 import { IButtonState } from "@/app/types";
+import { pdf } from "@react-pdf/renderer";
+import ListReportPage from "@/app/components/Report";
+import { useDisclosure } from "@mantine/hooks";
 
-export interface HomePanelProps {
-}
+// export interface HomePanelProps {
+// }
 
-export default function HomePanel({}: HomePanelProps) {
+export default function HomePanel() {
     const [isLoading, setLoading] = useState(false);
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
     const [records, setRecords] = useState<IRecord[]>([]);
     const [editMode, setEditMode] = useState(false);
     const [year, setYear] = useState<number | null>(null);
     const [month, setMonth] = useState<typeof SHAMSI_MONTHS[number] | null>(null);
+    const [reportTitle, setReportTitle] = useState<string | null>(null);
+    const [opened, {open, close}] = useDisclosure(false);
+
+    const reportTitleChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setReportTitle(e.currentTarget.value);
+    }
 
     const updateRecords = (record: IRecord) => {
         setRecords(records => {
@@ -125,7 +134,43 @@ export default function HomePanel({}: HomePanelProps) {
         }
     }
 
-    const printRecord = () => {
+    const reportHandler = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+    }
+
+    const generateReport = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (columns && programs && records && categories) {
+            const sortedRecords = [...records].sort((a, b) => {
+                const programA = programs.find(p => p._id === a.program);
+                const programB = programs.find(p => p._id === b.program);
+                if (programA && programB) {
+                    const catA = categories.find(cat => cat._id === programA.type);
+                    const catB = categories.find(cat => cat._id === programB.type);
+                    if (catA && catB) {
+                        return catA.title.localeCompare(catB.title);
+                    }
+                }
+                return 0;
+            });
+            pdf(<ListReportPage title="تخصیص درآمد اختصاصی" 
+                columns={columns}
+                programs={programs}
+                categories={categories}
+                items={sortedRecords}
+                subtitle={reportTitle || 'گزارش'} />).toBlob()
+                // pdf(<Page1 num={viewMode.value}/>).toBlob()
+                .then(blob => {
+                    console.log("view", blob);
+                    saveAs(blob, 'report.pdf');
+                    // window.location.reload();
+                })
+                .catch(err => {console.error(err)})
+        }
+    }
+
+    const printRecord = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
         let colCount = 0;
         let defaultCols = {};
 
@@ -235,8 +280,30 @@ export default function HomePanel({}: HomePanelProps) {
     const programs = useLiveQuery(async () => await db.programs.toArray());
     const columns = useLiveQuery(async () => await db.columns.toArray());
     const categories = useLiveQuery(async () => await db.categories.toArray());
+
+    const modalOnCloseHandler = () => {
+        setReportTitle('');
+        close();
+    }
     return (
         <Container fluid>
+            <Modal
+                opened={opened} 
+                onClose={modalOnCloseHandler}
+                title={'چاپ گزارش'}>
+                <form>
+                    <TextInput mb={'md'}
+                        label="عنوان گزارش"
+                        placeholder="برداشت اول فروردین ماه"
+                        onChange={reportTitleChangeHandler} />
+                    <Button type="submit" leftSection={<IconPrinter size={16} />} onClick={generateReport}>
+                        چاپ pdf
+                    </Button>
+                    <Button ml={'xs'} variant="transparent" leftSection={<IconFileExcel size={16} />} onClick={printRecord}>
+                        چاپ xlsx
+                    </Button>
+                </form>
+            </Modal>
             <form onSubmit={onSearchClickHandler}>
                 <Flex align={'end'} gap={'md'}>
                     <Box>
@@ -261,7 +328,8 @@ export default function HomePanel({}: HomePanelProps) {
                                     <Button
                                         w={48}
                                         p={0} m={0}
-                                        onClick={printRecord}>
+                                        // onClick={printRecord}>
+                                        onClick={open}>
                                     <IconPrinter size={24}/>
                                     </Button>
                             }

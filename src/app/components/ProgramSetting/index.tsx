@@ -12,10 +12,10 @@ import type IProgram from "@/app/lib/models/program/type";
 import type { IProgramNewObj, IProgramPopulated } from "@/app/lib/models/program/type";
 import type { IButtonState } from "@/app/types";
 
-export interface ProgramSettingProps {
-}
+// export interface ProgramSettingProps {
+// }
 
-export default function ProgramSetting({}: ProgramSettingProps) {
+export default function ProgramSetting() {
     const [opened, {open, close}] = useDisclosure(false);
 
     const modalOnCloseHandler = () => {
