@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from "react";
-import { Box, Button, Container, Flex, Group, NumberFormatter, NumberInput, Select, Table, Text, Title } from "@mantine/core";
+import { Box, Button, Container, Flex, Group, Modal, NumberFormatter, NumberInput, Select, Table, Text, TextInput, Title } from "@mantine/core";
 import * as XLSX from 'xlsx';
 import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
 import { saveAs } from 'file-saver';
@@ -14,6 +14,7 @@ import IColumn from "@/app/lib/models/column/type";
 import { IProgramPopulated } from "@/app/lib/models/program/type";
 import ICategory from "@/app/lib/models/category/type";
 import axios from "axios";
+import { useDisclosure } from "@mantine/hooks";
 
 // export interface HomePanelProps {
 // }
@@ -189,6 +190,36 @@ export default function HomePanel() {
     // const programs = useLiveQuery(async () => await db.programs.toArray());
     // const columns = useLiveQuery(async () => await db.columns.toArray());
     // const categories = useLiveQuery(async () => await db.categories.toArray());
+    const generateReport = (e: React.MouseEvent<HTMLButtonElement>) => {
+        e.preventDefault();
+        if (columns && programs && records && categories) {
+            const sortedRecords = [...records].sort((a, b) => {
+                const programA = programs.find(p => p._id === a.program);
+                const programB = programs.find(p => p._id === b.program);
+                if (programA && programB) {
+                    const catA = categories.find(cat => cat._id === programA.type);
+                    const catB = categories.find(cat => cat._id === programB.type);
+                    if (catA && catB) {
+                        return catA.title.localeCompare(catB.title);
+                    }
+                }
+                return 0;
+            });
+            pdf(<ListReportPage title="تخصیص درآمد اختصاصی" 
+                columns={columns}
+                programs={programs}
+                categories={categories}
+                items={sortedRecords}
+                subtitle={reportTitle || 'گزارش'} />).toBlob()
+                // pdf(<Page1 num={viewMode.value}/>).toBlob()
+                .then(blob => {
+                    console.log("view", blob);
+                    saveAs(blob, 'report.pdf');
+                    // window.location.reload();
+                })
+                .catch(err => {console.error(err)})
+        }
+    }
 
     const printRecord = () => {
         let colCount = 0;
@@ -271,8 +302,37 @@ export default function HomePanel() {
         saveAs(blob, "report.xlsx");
     }
 
+    const [reportTitle, setReportTitle] = useState<string | null>(null);
+    const [opened, {open, close}] = useDisclosure(false);
+
+    const reportTitleChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setReportTitle(e.currentTarget.value);
+    }
+
+    const modalOnCloseHandler = () => {
+        setReportTitle('');
+        close();
+    }
+
     return (
         <Container fluid>
+            <Modal
+                opened={opened} 
+                onClose={modalOnCloseHandler}
+                title={'چاپ گزارش'}>
+                <form>
+                    <TextInput mb={'md'}
+                        label="عنوان گزارش"
+                        placeholder="برداشت اول فروردین ماه"
+                        onChange={reportTitleChangeHandler} />
+                    <Button type="submit" leftSection={<IconPrinter size={16} />} onClick={generateReport}>
+                        چاپ pdf
+                    </Button>
+                    <Button ml={'xs'} variant="transparent" leftSection={<IconFileExcel size={16} />} onClick={printRecord}>
+                        چاپ xlsx
+                    </Button>
+                </form>
+            </Modal>
             <form onSubmit={onSearchClickHandler}>
                 <Flex align={'end'} gap={'md'}>
                     <Box>
