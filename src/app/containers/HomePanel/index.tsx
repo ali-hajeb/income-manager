@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Box, Button, Container, Flex, Group, Modal, NumberFormatter, NumberInput, Select, Table, Text, TextInput, Title } from "@mantine/core";
 import * as XLSX from 'xlsx';
-import { IconCheck, IconExclamationCircle, IconPrinter } from "@tabler/icons-react";
+import { IconCheck, IconExclamationCircle, IconFileExcel, IconPrinter } from "@tabler/icons-react";
 import { saveAs } from 'file-saver';
+import { pdf } from "@react-pdf/renderer";
 import { SHAMSI_MONTHS } from "@/app/constants/months";
 import IRecord from "@/app/lib/models/record/type";
 import TableRow from "@/app/components/HomeTable/TableRow";
@@ -15,6 +16,8 @@ import { IProgramPopulated } from "@/app/lib/models/program/type";
 import ICategory from "@/app/lib/models/category/type";
 import axios from "axios";
 import { useDisclosure } from "@mantine/hooks";
+import ListReportPage from "@/app/components/Report";
+import { numberWithCommas, toFarsiNumber } from "@/app/utils/number";
 
 // export interface HomePanelProps {
 // }
@@ -197,11 +200,8 @@ export default function HomePanel() {
                 const programA = programs.find(p => p._id === a.program);
                 const programB = programs.find(p => p._id === b.program);
                 if (programA && programB) {
-                    const catA = categories.find(cat => cat._id === programA.type);
-                    const catB = categories.find(cat => cat._id === programB.type);
-                    if (catA && catB) {
-                        return catA.title.localeCompare(catB.title);
-                    }
+                    console.log('gen',programA, programB);
+                    return programA.type.title.localeCompare(programB.type.title);
                 }
                 return 0;
             });
@@ -357,7 +357,8 @@ export default function HomePanel() {
                                     <Button
                                         w={48}
                                         p={0} m={0}
-                                        onClick={printRecord}>
+                                        // onClick={printRecord}>
+                                        onClick={open}>
                                     <IconPrinter size={24}/>
                                     </Button>
                             }
@@ -455,6 +456,39 @@ export default function HomePanel() {
                     })
                     :
                         <Text mt={200}ta={'center'}>داده‌ای برای نمایش وجود ندارد!</Text>
+                }
+                {
+                    records && records.length > 0 && <>
+                        <Title order={2} mt={'md'}>جمع کل</Title>
+                        <Table>
+                            <Table.Thead>
+                                <Table.Tr>
+                                    {
+                                        columns?.map(col => <Table.Th key={col._id}>مجموع {col.title}</Table.Th>)
+
+                                    }
+                                    <Table.Th>کل کسورات</Table.Th>
+                                    <Table.Th>کل درآمد خالص</Table.Th>
+                                </Table.Tr>
+                            </Table.Thead>
+                            <Table.Tbody>
+                                <Table.Tr>
+                                    {
+                                        columns?.map(col => {
+                                            const values = records.map(rec => rec.values.find(v => v.column_id === col._id))
+                                            if (values) {
+                                                const total = values.reduce((sum, cur) => sum + (parseFloat(cur?.value as string || '0')), 0);
+                                                return <Table.Td key={col._id}>{toFarsiNumber(numberWithCommas(total))}</Table.Td>
+                                            }
+                                        })
+
+                                    }
+                                    <Table.Td>{toFarsiNumber(numberWithCommas(records.reduce((sum, cur) => sum + cur.totalDeduction, 0)))}</Table.Td>
+                                    <Table.Td>{toFarsiNumber(numberWithCommas(records.reduce((sum, cur) => sum + cur.netIncome, 0)))}</Table.Td>
+                                </Table.Tr>
+                            </Table.Tbody>
+                        </Table>
+                    </>
                 }
                 { records && records.length > 0 &&
                     <Button type="submit"

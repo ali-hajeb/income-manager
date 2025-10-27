@@ -118,7 +118,7 @@ export interface ListReportPageProps {
     subtitle: string;
     columns: IColumn[];
     items: IRecord[];
-    programs: IProgram[];
+    programs: IProgramPopulated[] | IProgram[];
     categories: ICategory[];
 }
 
@@ -154,27 +154,29 @@ export default function ListReportPage({title, subtitle, columns, items, program
                 <View style={styles.table}>
                     {items && items.map((item, i) => { 
                         const program = programs.find(p => p._id === item.program);
+                        {/* console.log("report", program, item); */}
                         if (program) {
-                            const category = categories.find(cat => cat._id === program.type);
-                            if (category) {
-                                return <View style={styles.tableRow} key={i} break={i >= 15}>
-                                    <PdfText style={[styles.tableCell, styles.listCell]}>{category.title}</PdfText>
-                                    <PdfText style={[styles.tableCell, styles.listCell, {flex: 2}]}>{program.programCode}</PdfText>
-                                    <PdfText style={[styles.tableCell, styles.listCell, {flex: 2}]}>{program.title}</PdfText>
-                                    <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(item.currentCode)}</PdfText>
-                                    <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.budget.toFixed(0))))}</PdfText>
-                                    {
-                                        columns.map(col => {
-                                            const value = item.values.find(v => v.column_id === col._id);
-                                            if (value) {
-                                                return <PdfText key={col._id + value.value} style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt((value.value as number).toFixed(0))))}</PdfText>;
-                                            }
-                                            return <PdfText key={col._id} style={[styles.tableCell, styles.listCell]}></PdfText>
-                                        })
-                                    }
-                                    <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.totalDeduction.toFixed(0))))}</PdfText>
-                                    <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.netIncome.toFixed(0))))}</PdfText>
-                                </View>}}
+                            return <View style={styles.tableRow} key={i} break={i >= 15}>
+                                <PdfText style={[styles.tableCell, styles.listCell]}>{program.type.title}</PdfText>
+                                <PdfText style={[styles.tableCell, styles.listCell, {flex: 2}]}>{program.programCode}</PdfText>
+                                <PdfText style={[styles.tableCell, styles.listCell, {flex: 2}]}>{program.title}</PdfText>
+                                <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(item.currentCode)}</PdfText>
+                                <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.budget.toFixed(0))))}</PdfText>
+                                {
+                                    columns.map(col => {
+                                        const value = item.values.find(v => v.column_id === col._id);
+                                        if (value) {
+                                            console.log('re', value);
+                                            return <PdfText key={col._id + value.value} style={[styles.tableCell, styles.listCell]}>
+                                                {toFarsiNumber(numberWithCommas(parseFloat(value.value as string).toFixed(0)))}
+                                            </PdfText>;
+                                        }
+                                        return <PdfText key={col._id} style={[styles.tableCell, styles.listCell]}>{toFarsiNumber('0')}</PdfText>
+                                    })
+                                }
+                                <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.totalDeduction.toFixed(0))))}</PdfText>
+                                <PdfText style={[styles.tableCell, styles.listCell]}>{toFarsiNumber(numberWithCommas(parseInt(item.netIncome.toFixed(0))))}</PdfText>
+                            </View>}
                         })
                     }
                     <View style={styles.tableRow}>

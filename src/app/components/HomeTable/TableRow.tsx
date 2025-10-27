@@ -1,9 +1,8 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import { Button, Group, NumberFormatter, NumberInput, Table, TextInput } from "@mantine/core";
-import { IconCalculator } from "@tabler/icons-react";
+import { IconCalculator, IconEqual } from "@tabler/icons-react";
 import { toFarsiNumber } from '@/app/utils/number';
-import type IProgram from '@/app/lib/models/program/type';
 import type IRecord from '@/app/lib/models/record/type';
 import type IColumn from "@/app/lib/models/column/type";
 import { ICellValue } from "@/app/lib/models/record/type";
@@ -123,7 +122,7 @@ export default function TableRow({
 
     return <Table.Tr>
         <Table.Td>{toFarsiNumber(index)}</Table.Td>
-        <Table.Td>{program?.title}</Table.Td>
+        <Table.Td miw={200}>{program?.title}</Table.Td>
         <Table.Td>
             <TextInput 
                 name="currentCode" 
@@ -131,6 +130,7 @@ export default function TableRow({
                 value={currentCode}
                 onChange={onCurrentCodeChangeHandler}
                 onBlur={onBudgetCalcHandler}
+                miw={80}
             />
         </Table.Td>
         <Table.Td>
@@ -141,6 +141,7 @@ export default function TableRow({
                     value={budget}
                     onChange={onBudgetChangeHandler}
                     onBlur={onBudgetCalcHandler}
+                    miw={150}
                     thousandSeparator
                 />
                 <Button 
@@ -149,9 +150,9 @@ export default function TableRow({
                     onClick={onBudgetCalcHandler}
                     p={0}
                     m={0}
-                    w={64}
+                    w={48}
                 >
-                    <IconCalculator size={24} />
+                    <IconEqual size={24} />
                 </Button>
             </Group>
         </Table.Td>
@@ -166,6 +167,7 @@ export default function TableRow({
                             data-col={col._id}
                             value={value.value}
                             readOnly={col.auto}
+                            miw={150}
                             thousandSeparator
                         /> : <TextInput
                             type="number"
@@ -178,18 +180,20 @@ export default function TableRow({
                             readOnly={col.auto}
                             onChange={onCellChangeHandler}
                             onBlur={onBudgetCalcHandler}
+                            miw={150}
                         />
                         :
                         <TextInput 
                             value={'0'}
+                            miw={150}
                             disabled
                         />
                     }
                 </Table.Td>)
             })
         }
-        <Table.Td><NumberFormatter thousandSeparator value={totalDeduction} /></Table.Td>
-        <Table.Td><NumberFormatter thousandSeparator value={netIncome} /></Table.Td>
+        <Table.Td miw={150}><NumberFormatter thousandSeparator value={totalDeduction} /></Table.Td>
+        <Table.Td miw={150}><NumberFormatter thousandSeparator value={netIncome} /></Table.Td>
         <Table.Td>{program?.programCode}</Table.Td>
     </Table.Tr>
 }
