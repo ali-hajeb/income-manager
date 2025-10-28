@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { Box, Button, Group, Modal, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCheck, IconExclamationCircle, IconUpload } from "@tabler/icons-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useForm } from "@mantine/form";
 import { createColumn, deleteColumn, editColumn } from "@/app/lib/models/column";
 import { loadDefaultData } from "@/app/utils/";
@@ -41,6 +42,7 @@ export default function ColumnSetting({ columns: columnsData, setColumnsData }: 
     //         });
     // }, []);
 
+    // const columnsData = useLiveQuery(() => db.columns.toArray());
 
     const columnForm = useForm<IColumnForm>({
         mode: 'controlled',

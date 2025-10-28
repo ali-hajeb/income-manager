@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { Box, Button, Group, Modal, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCheck, IconExclamationCircle, IconUpload } from "@tabler/icons-react";
+import { useLiveQuery } from "dexie-react-hooks";
 import { useForm } from "@mantine/form";
 import { createCategory, editCategory, deleteCategory } from "@/app/lib/models/category";
 import { loadDefaultData } from "@/app/utils/";
@@ -24,6 +25,7 @@ export default function CategorySetting({ categories: categoryData, setCategoryD
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
     // const [categoryData, setCategoryData] = useState<ICategory[]>([]);
 
+    // const categoryData = useLiveQuery(() => db.categories.toArray());
 
     const categoryForm = useForm<ICategoryNewObj>({
         mode: 'controlled',
