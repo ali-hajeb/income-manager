@@ -1,4 +1,3 @@
-import { db } from '@/app/utils/db';
 import type IProgram from './type';
 import axios from 'axios';
 

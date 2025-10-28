@@ -1,4 +1,3 @@
-import { db } from "@/app/utils/db";
 import type IRecord from "./type";
 import axios from "axios";
 import { IRecordNewObj } from "./type";

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { db } from '../../../utils/db';
 import type IColumn from './type';
 import type { IColumnNewObj } from './type';
 

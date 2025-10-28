@@ -2,7 +2,6 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Box, Button, Group, Modal, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconCheck, IconExclamationCircle, IconUpload } from "@tabler/icons-react";
-import { useLiveQuery } from "dexie-react-hooks";
 import { useForm } from "@mantine/form";
 import { createProgram, deleteProgram, editProgram } from "@/app/lib/models/program";
 import { loadDefaultData } from "@/app/utils/";
@@ -40,24 +39,6 @@ export default function ProgramSetting({
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
     // const [programsData, setProgramsData] = useState<IProgram[]>([]);
 
-    // const programsData = useLiveQuery(async () => {
-    //     const data = await db.programs.toArray();
-    //     const list = await Promise.all(data.map(async (program) => {
-    //         const withType = program.type ?
-    //             {...program, type: await db.categories.get(program.type)}
-    //             : {...program, type: null};
-    //
-    //         // const withCols = program.cols && program.cols.length > 0 ?
-    //         //     {...withType, cols: await Promise.all(program.cols.map( async (col) => await db.columns.get(col)))}
-    //         //     : { ...program, cols: [] };
-    //         // const columns = await db.columns.where('id').anyOf(program.cols).toArray();
-    //         // return withCols;
-    //         return {...withType};
-    //     }));
-    //     return list;
-    // });
-    // const columnsData = useLiveQuery(() => db.columns.toArray());
-    // const categoriesData = useLiveQuery(() => db.categories.toArray());
     const categoriesList = useMemo(() => categoriesData?.map(cat => cat.title), [categoriesData]);
 
     const programForm = useForm<IProgramForm>({

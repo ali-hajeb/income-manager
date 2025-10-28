@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { db } from '../../../utils/db';
 import type ICategory from './type';
 import type { ICategoryNewObj } from './type';
 
