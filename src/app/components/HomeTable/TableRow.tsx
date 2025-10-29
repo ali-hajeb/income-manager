@@ -102,7 +102,7 @@ export default function TableRow({
                     if (cols) {
                         const updated = [...cols];
                         const columnIndex = updated.findIndex(col => col.column_id === columnId);
-                        if (columnIndex && columnIndex > -1) {
+                        if (columnIndex > -1) {
                             updated[columnIndex].value = value;
                             return updated;
                         }
