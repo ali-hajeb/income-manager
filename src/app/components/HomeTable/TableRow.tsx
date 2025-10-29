@@ -91,7 +91,7 @@ export default function TableRow({
 
     const onCellChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.currentTarget) {
-            let value = parseFloat(e.currentTarget.value as string);
+            const value = parseFloat(e.currentTarget.value as string);
             const columnId = e.currentTarget.dataset.col;
             // const max = parseFloat(e.currentTarget.dataset.max as string);
             // if (max && value > max) {
