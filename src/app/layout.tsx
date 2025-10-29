@@ -24,6 +24,11 @@ export default function RootLayout({
                         {children}
                     </MantineProvider>
                 </DirectionProvider>
+                <footer>
+                  <center>
+                    <span style={{color: '#f9f9f9'}}>Copyright &copy; 2025-2026 By Ali Hajeb</span>
+                  </center>
+                </footer>
             </body>
         </html>
   );
