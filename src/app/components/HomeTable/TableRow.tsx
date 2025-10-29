@@ -93,10 +93,10 @@ export default function TableRow({
         if (e.currentTarget) {
             let value = parseFloat(e.currentTarget.value as string);
             const columnId = e.currentTarget.dataset.col;
-            const max = parseFloat(e.currentTarget.dataset.max as string);
-            if (max && value > max) {
-                value = max;
-            }
+            // const max = parseFloat(e.currentTarget.dataset.max as string);
+            // if (max && value > max) {
+            //     value = max;
+            // }
             if (value > -1 && columnId) {
                 setCols(cols => {
                     if (cols) {
