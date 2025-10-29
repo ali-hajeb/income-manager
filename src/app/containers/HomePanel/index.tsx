@@ -463,6 +463,7 @@ export default function HomePanel() {
                         <Table>
                             <Table.Thead>
                                 <Table.Tr>
+                                    <Table.Th>کل ورودی</Table.Th>
                                     {
                                         columns?.map(col => <Table.Th key={col._id}>مجموع {col.title}</Table.Th>)
 
@@ -473,6 +474,7 @@ export default function HomePanel() {
                             </Table.Thead>
                             <Table.Tbody>
                                 <Table.Tr>
+                                    <Table.Td>{toFarsiNumber(numberWithCommas(parseInt(records.reduce((sum, cur) => sum + cur.budget, 0).toFixed(0))))}</Table.Td>
                                     {
                                         columns?.map(col => {
                                             const values = records.map(rec => rec.values.find(v => v.column_id === col._id))
