@@ -478,13 +478,13 @@ export default function HomePanel() {
                                             const values = records.map(rec => rec.values.find(v => v.column_id === col._id))
                                             if (values) {
                                                 const total = values.reduce((sum, cur) => sum + (parseFloat(cur?.value as string || '0')), 0);
-                                                return <Table.Td key={col._id}>{toFarsiNumber(numberWithCommas(total))}</Table.Td>
+                                                return <Table.Td key={col._id}>{toFarsiNumber(numberWithCommas(parseInt(total.toFixed(0))))}</Table.Td>
                                             }
                                         })
 
                                     }
-                                    <Table.Td>{toFarsiNumber(numberWithCommas(records.reduce((sum, cur) => sum + cur.totalDeduction, 0)))}</Table.Td>
-                                    <Table.Td>{toFarsiNumber(numberWithCommas(records.reduce((sum, cur) => sum + cur.netIncome, 0)))}</Table.Td>
+                                    <Table.Td>{toFarsiNumber(numberWithCommas(parseInt(records.reduce((sum, cur) => sum + cur.totalDeduction, 0).toFixed(0))))}</Table.Td>
+                                    <Table.Td>{toFarsiNumber(numberWithCommas(parseInt(records.reduce((sum, cur) => sum + cur.netIncome, 0).toFixed(0))))}</Table.Td>
                                 </Table.Tr>
                             </Table.Tbody>
                         </Table>
