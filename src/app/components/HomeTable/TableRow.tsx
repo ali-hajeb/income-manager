@@ -25,10 +25,17 @@ export default function TableRow({
 }: TableRowProps) {
     const [currentCode, setCurrentCode] = useState(record?.currentCode || '');
     const [budget, setBudget] = useState(record?.budget || 0);
-    const [cols, setCols] = useState(record?.values || []);
+    const [cols, setCols] = useState<ICellValue[]>(program?.cols.map(c => {
+        const value = record?.values.find(col => col.column_id === c._id);
+        return ({column_id: c._id, column_title: c.title, value: value?.value || 0})
+    }) || []);
     const [totalDeduction, setTotalDeduction] = useState(record?.totalDeduction || 0);
     const [netIncome, setNetIncome] = useState(record?.netIncome || 0);
     const [changed, setChanged] = useState(0);
+
+    // useEffect(() => {
+    //     setCols()
+    // }, []);
 
     useEffect(() => {
         updateRecords();
@@ -158,7 +165,13 @@ export default function TableRow({
         </Table.Td>
         {
             columns?.map(col => {
-                const value = cols?.find(r => r.column_id === col._id);
+                let value = cols?.find(r => r.column_id === col._id);
+                {/* if (!value) { */}
+                {/*     const programCol = program?.cols.find(c => c._id === col._id); */}
+                {/*     if (programCol) { */}
+                {/*         value = { column_id: programCol._id, column_title: programCol.title, value: 0}; */}
+                {/*     } */}
+                {/* } */}
                 return (<Table.Td key={col._id}>
                     {value ? col.auto ?
                         <NumberInput
