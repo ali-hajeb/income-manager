@@ -33,6 +33,9 @@ const recordSchema = new Schema<IRecord>({
     totalIncome: {
         type: Number,
     },
+    withdrawalDesc: {
+        type: String,
+    },
     values: [
         {
             column_id: {

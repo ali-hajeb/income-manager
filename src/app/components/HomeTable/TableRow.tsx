@@ -165,7 +165,7 @@ export default function TableRow({
         </Table.Td>
         {
             columns?.map(col => {
-                let value = cols?.find(r => r.column_id === col._id);
+                const value = cols?.find(r => r.column_id === col._id);
                 {/* if (!value) { */}
                 {/*     const programCol = program?.cols.find(c => c._id === col._id); */}
                 {/*     if (programCol) { */}

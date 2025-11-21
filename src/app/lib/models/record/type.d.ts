@@ -18,6 +18,7 @@ export interface IRecordNewObj {
     prevIncome: number;
     totalIncome: number;
     values: ICellValue[];
+    withdrawalDesc: string;
 }
 
 export default interface IRecord extends IRecordNewObj {

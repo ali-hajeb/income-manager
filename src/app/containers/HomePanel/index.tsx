@@ -26,8 +26,11 @@ export default function HomePanel() {
     const [isLoading, setLoading] = useState(false);
     const [btnState, setBtnState] = useState<IButtonState>({color: undefined, icon: undefined})
     const [records, setRecords] = useState<IRecord[]>([]);
+    const [withdrawalOptions, setWithdrawalOptions] = useState<string[]>([]);
+    const [selectedWithdrawal, setSelectedWithdrawal] = useState<string | null>(null);
+    const [withdrawalDesc, setWithdrawalDesc] = useState<string>('');
     const [editMode, setEditMode] = useState(false);
-    const [year, setYear] = useState<number | null>(null);
+    const [year, setYear] = useState<number | string>('');
     const [month, setMonth] = useState<typeof SHAMSI_MONTHS[number] | null>(null);
 
     const updateRecords = (record: IRecord) => {
@@ -50,12 +53,71 @@ export default function HomePanel() {
                 const _m = SHAMSI_MONTHS.findIndex(item => item === month);
                 console.log(month, _m, year);
                 const recs = await getRecord(_m, year);
-                if (recs && recs.data.record) {
-                    setRecords(recs.data.record);
+                if (selectedWithdrawal) {
+                    if (recs && recs.data.record) {
+                        setRecords((recs.data.record as IRecord[]).filter(item => item.withdrawalDesc === selectedWithdrawal));
+                        setWithdrawalDesc(selectedWithdrawal);
+                    }
+                    setEditMode(true);
+                    setBtnState({color: 'green', icon: <IconCheck size={16}/>});
+                } else {
+                    if (recs && recs.data.record) {
+                        console.log(recs.data.record);
+                        const wOpts = [...new Set((recs.data.record as IRecord[]).map(item => item.withdrawalDesc))];
+                        console.log(wOpts);
+                        if (wOpts.length > 0) {
+                            setWithdrawalOptions(wOpts);
+                        }
+                    }
                 }
-                setEditMode(true);
-                setBtnState({color: 'green', icon: <IconCheck size={16}/>});
             }
+        } catch (error) {
+            console.error(error);
+            setBtnState({color: 'red', icon: <IconExclamationCircle size={16} />});
+        }
+        setLoading(false);
+        setTimeout(() => {
+            setBtnState({color: undefined, icon: undefined});
+        }, 1000);
+    }
+
+    const onSaveAndRest = async (e: React.MouseEvent<HTMLButtonElement>) => {
+        setLoading(true);
+        e.preventDefault();
+        try {
+            if (editMode) {
+                const _recs = records.map(r => {
+                    return {...r, withdrawalDesc: withdrawalDesc};
+                });
+                const res = await editRecord(_recs);
+                if (res && res.data.records) {
+                    setRecords(res.data.records)
+                }
+            } else {
+                const _recs = records.map(r => {
+                    const {_id, ...data} = r;
+                    return {...data, withdrawalDesc: withdrawalDesc};
+                });
+                const res = await insertManyRecords(_recs);
+                if (res && res.data.records) {
+                    setRecords(res.data.records)
+                    setEditMode(true);
+                }
+            }
+            // await Promise.all(records.map(async (r) => {
+            //     if (editMode) {
+            //         return await editRecord(r);
+            //     } else {
+            //         return await createRecord(r);
+            //     }
+            // }));
+            setBtnState({color: 'green', icon: <IconCheck size={16}/>});
+            setRecords([]);
+            setYear('');
+            setMonth(null);
+            setWithdrawalDesc('');
+            setSelectedWithdrawal(null);
+            setWithdrawalOptions([]);
         } catch (error) {
             console.error(error);
             setBtnState({color: 'red', icon: <IconExclamationCircle size={16} />});
@@ -71,14 +133,17 @@ export default function HomePanel() {
         try {
             e.preventDefault();
             if (editMode) {
-                const res = await editRecord(records);
+                const _recs = records.map(r => {
+                    return {...r, withdrawalDesc: withdrawalDesc};
+                });
+                const res = await editRecord(_recs);
                 if (res && res.data.records) {
                     setRecords(res.data.records)
                 }
             } else {
                 const _recs = records.map(r => {
                     const {_id, ...data} = r;
-                    return data;
+                    return {...data, withdrawalDesc: withdrawalDesc};
                 });
                 const res = await insertManyRecords(_recs);
                 if (res && res.data.records) {
@@ -111,9 +176,13 @@ export default function HomePanel() {
             try {
                 const recs = await getRecord(_m, year);
                 console.log(recs);
-                if (recs && recs.data.record.length > 0) {
-                    alert('گزارش این ماه قبلا ایجاد شده‌است!');
-                    return;
+                if (recs && recs.data.record && recs.data.record.length > 0) {
+                    const filteredRecords = (recs?.data.record as IRecord[]).filter(item => item.withdrawalDesc === selectedWithdrawal);
+                    if (filteredRecords.length > 0) {
+                        alert('گزارش این ماه قبلا ایجاد شده‌است!');
+                        setSelectedWithdrawal(null);
+                        return;
+                    }
                 }
             } catch (error) {
                 console.error(error);
@@ -302,11 +371,15 @@ export default function HomePanel() {
         saveAs(blob, "report.xlsx");
     }
 
-    const [reportTitle, setReportTitle] = useState<string | null>(null);
+    const [reportTitle, setReportTitle] = useState<string>(withdrawalDesc || '');
     const [opened, {open, close}] = useDisclosure(false);
 
     const reportTitleChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         setReportTitle(e.currentTarget.value);
+    }
+
+    const reportWithdrawalDescChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setWithdrawalDesc(e.currentTarget.value);
     }
 
     const modalOnCloseHandler = () => {
@@ -324,6 +397,7 @@ export default function HomePanel() {
                     <TextInput mb={'md'}
                         label="عنوان گزارش"
                         placeholder="برداشت اول فروردین ماه"
+                        value={reportTitle}
                         onChange={reportTitleChangeHandler} />
                     <Button type="submit" leftSection={<IconPrinter size={16} />} onClick={generateReport}>
                         چاپ pdf
@@ -339,6 +413,7 @@ export default function HomePanel() {
                         <NumberInput maxLength={4} minLength={4}
                             label='سال'
                             placeholder="1404"
+                            value={year}
                             onChange={setYear}
                             />
                     </Box>
@@ -347,9 +422,20 @@ export default function HomePanel() {
                             label='ماه'
                             placeholder="فروردین، اردیبهشت و..."
                             data={SHAMSI_MONTHS}
+                            value={month}
                             onChange={setMonth}
                         />
                     </Box>
+                    {
+                        withdrawalOptions.length > 0 && <Box>
+                            <Select
+                                label="برداشت"
+                                placeholder="سند برداشت را انتخاب کنید"
+                                data={withdrawalOptions}
+                                onChange={setSelectedWithdrawal}
+                                value={selectedWithdrawal} />
+                        </Box>
+                    }
                     <Box>
                         <Group>
                             {
@@ -358,7 +444,11 @@ export default function HomePanel() {
                                         w={48}
                                         p={0} m={0}
                                         // onClick={printRecord}>
-                                        onClick={open}>
+                                        onClick={() => {
+                                            console.log(withdrawalDesc);
+                                            setReportTitle(withdrawalDesc);
+                                            open();
+                                        }}>
                                     <IconPrinter size={24}/>
                                     </Button>
                             }
@@ -367,6 +457,13 @@ export default function HomePanel() {
                                 color={btnState.color} 
                                 rightSection={btnState.icon}
                                 disabled={!year || !month} >نمایش</Button>
+                            <Button 
+                                variant="outline"
+                                loading={isLoading} 
+                                color={btnState.color} 
+                                rightSection={btnState.icon}
+                                onClick={onSaveAndRest}
+                                disabled={!year || !month} >ذخیره و بازگشت</Button>
                             <Button 
                                 variant="transparent"
                                 disabled={!year || !month || (records && records.length > 0)}
@@ -378,7 +475,16 @@ export default function HomePanel() {
             <form onSubmit={onRecordSubmit}>
                 {
                     records && records.length > 0 ?
-                    categories?.map(cat => {
+                        <>
+                            <Title order={2} mt={'md'}>نام سند برداشت</Title>
+                            <TextInput
+                                mt={'md'}
+                                // label="نام سند برداشت"
+                                placeholder="نمونه: برداشت مرحله اول مهرماه 1404"
+                                value={withdrawalDesc}
+                                onChange={reportWithdrawalDescChangeHandler}
+                                />
+                    { categories?.map(cat => {
                         const _programs = programs?.filter(p => p.type._id === cat._id);
                         const _records = records.filter(r => _programs?.find(p => p._id === r.program));
                             return (<React.Fragment key={cat._id}>
@@ -453,8 +559,8 @@ export default function HomePanel() {
                                     </Table>
                                 </Table.ScrollContainer>
                             </React.Fragment>)
-                    })
-                    :
+                    })}
+                    </>:
                         <Text mt={200}ta={'center'}>داده‌ای برای نمایش وجود ندارد!</Text>
                 }
                 {
@@ -498,6 +604,7 @@ export default function HomePanel() {
                         loading={isLoading} 
                         color={btnState.color} 
                         rightSection={btnState.icon}
+                        disabled={!editMode && withdrawalOptions.includes(withdrawalDesc)}
                         fullWidth>
                         ثبت
                     </Button>
