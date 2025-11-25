@@ -90,35 +90,34 @@ export default function TableRow({
     }
 
     const onBudgetChangeHandler = (value: number | string) => {
-        if (value) {
-            setBudget(parseFloat(`${value}`));
-            // updateRow(parseFloat(e.currentTarget.value));
-        }
+        const inputValue = value || 0;
+        setBudget(parseFloat(`${inputValue}`));
+        // updateRow(parseFloat(e.currentTarget.value));
     }
 
     const onCellChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.currentTarget) {
-            const value = parseFloat(e.currentTarget.value as string);
-            const columnId = e.currentTarget.dataset.col;
-            // const max = parseFloat(e.currentTarget.dataset.max as string);
-            // if (max && value > max) {
-            //     value = max;
-            // }
-            if (value > -1 && columnId) {
-                setCols(cols => {
-                    if (cols) {
-                        const updated = [...cols];
-                        const columnIndex = updated.findIndex(col => col.column_id === columnId);
-                        if (columnIndex > -1) {
-                            updated[columnIndex].value = value;
-                            return updated;
-                        }
+        const inputValue = e.currentTarget.value || '0';
+        console.log("[UPDATE]", inputValue);
+        const value = parseFloat(inputValue);
+        const columnId = e.currentTarget.dataset.col;
+        // const max = parseFloat(e.currentTarget.dataset.max as string);
+        // if (max && value > max) {
+        //     value = max;
+        // }
+        if (value > -1 && columnId) {
+            setCols(cols => {
+                if (cols) {
+                    const updated = [...cols];
+                    const columnIndex = updated.findIndex(col => col.column_id === columnId);
+                    if (columnIndex > -1) {
+                        updated[columnIndex].value = value;
+                        return updated;
                     }
-                    return cols;
-                });
-            }
-            // updateRow(budget || 0);
+                }
+                return cols;
+            });
         }
+        // updateRow(budget || 0);
     }
 
     const onBudgetCalcHandler = (e: React.MouseEvent<HTMLButtonElement> | React.FocusEvent<HTMLInputElement>) => {
