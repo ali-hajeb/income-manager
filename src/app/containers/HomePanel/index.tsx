@@ -457,13 +457,16 @@ export default function HomePanel() {
                                 color={btnState.color} 
                                 rightSection={btnState.icon}
                                 disabled={!year || !month} >نمایش</Button>
-                            <Button 
-                                variant="outline"
-                                loading={isLoading} 
-                                color={btnState.color} 
-                                rightSection={btnState.icon}
-                                onClick={onSaveAndRest}
-                                disabled={!year || !month} >ذخیره و بازگشت</Button>
+                            {
+                                records && records.length > 0 &&
+                                    <Button 
+                                        variant="outline"
+                                        loading={isLoading} 
+                                        color={btnState.color} 
+                                        rightSection={btnState.icon}
+                                        onClick={onSaveAndRest}
+                                        disabled={!year || !month} >ذخیره و بازگشت</Button>
+                            }
                             <Button 
                                 variant="transparent"
                                 disabled={!year || !month || (records && records.length > 0)}
