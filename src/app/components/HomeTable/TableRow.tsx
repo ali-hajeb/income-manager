@@ -62,7 +62,7 @@ export default function TableRow({
                     if (column) {
                         return {
                             ...c,
-                            value: column.auto ? _budget * column.percentage / 100 : c.value,
+                            value: column.auto ? Math.floor(_budget * column.percentage / 100) : c.value,
                         }
                     }
                     return c;
@@ -80,7 +80,7 @@ export default function TableRow({
     const calculateTotalDeduction= (cols: ICellValue[]) => {
         const sum = cols.reduce((sum, cur) => {
             console.log(cur.column_title, sum, cur.value);
-            return sum + parseFloat(cur.value as string)
+            return sum + parseInt(cur.value as string)
         }, 0);
         return sum || 0;
     }
@@ -91,16 +91,16 @@ export default function TableRow({
 
     const onBudgetChangeHandler = (value: number | string) => {
         const inputValue = value || 0;
-        setBudget(parseFloat(`${inputValue}`));
-        // updateRow(parseFloat(e.currentTarget.value));
+        setBudget(parseInt(`${inputValue}`));
+        // updateRow(parseInt(e.currentTarget.value));
     }
 
     const onCellChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.currentTarget.value || '0';
         console.log("[UPDATE]", inputValue);
-        const value = parseFloat(inputValue);
+        const value = parseInt(inputValue);
         const columnId = e.currentTarget.dataset.col;
-        // const max = parseFloat(e.currentTarget.dataset.max as string);
+        // const max = parseInt(e.currentTarget.dataset.max as string);
         // if (max && value > max) {
         //     value = max;
         // }
