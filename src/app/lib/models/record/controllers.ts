@@ -1,10 +1,10 @@
+import axiosInstance from "@/app/config/axiosInstance";
 import type IRecord from "./type";
-import axios from "axios";
 import { IRecordNewObj } from "./type";
 
 export async function insertManyRecords(items: IRecordNewObj[]) {
     try {
-        return axios.put('/api/record', {items});
+        return axiosInstance.put('/record', {items});
     } catch (error) {
         console.error(error);
     }
@@ -13,7 +13,7 @@ export async function insertManyRecords(items: IRecordNewObj[]) {
 export async function createRecord(data: IRecordNewObj) {
     try {
         // await db.records.add({...data});
-        return axios.post('/api/record', {...data});
+        return axiosInstance.post('/record', {...data});
     } catch (error) {
         console.error(error);
     }
@@ -22,7 +22,7 @@ export async function createRecord(data: IRecordNewObj) {
 export async function editRecord(items: IRecord[]) {
     try {
         // await db.records.update(_id, {...updatedData});
-        return axios.patch('/api/record', { items });
+        return axiosInstance.patch('/record', { items });
     } catch (error) {
         console.error(error);
     }
@@ -31,7 +31,7 @@ export async function editRecord(items: IRecord[]) {
 export async function deleteRecord(id: string) {
     try {
         // await db.records.delete(id);
-        return axios.delete('/api/record', { data: {_id: id} });
+        return axiosInstance.delete('/record', { data: {_id: id} });
     } catch (error) {
         console.error(error);
     }
@@ -40,7 +40,7 @@ export async function deleteRecord(id: string) {
 export async function getRecord(month: number, year: number) {
     try {
         // return await db.records.where('month').equals(month).and(record => record.year === year).toArray();
-        return axios.get('/api/record', { params: {month, year}});
+        return axiosInstance.get('/record', { params: {month, year}});
     } catch (error) {
         console.error(error);
     }

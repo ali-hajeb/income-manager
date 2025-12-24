@@ -14,10 +14,10 @@ import { insertManyRecords } from "@/app/lib/models/record/controllers";
 import IColumn from "@/app/lib/models/column/type";
 import { IProgramPopulated } from "@/app/lib/models/program/type";
 import ICategory from "@/app/lib/models/category/type";
-import axios from "axios";
 import { useDisclosure } from "@mantine/hooks";
 import ListReportPage from "@/app/components/Report";
 import { numberWithCommas, toFarsiNumber } from "@/app/utils/number";
+import axiosInstance from "@/app/config/axiosInstance";
 
 // export interface HomePanelProps {
 // }
@@ -62,9 +62,9 @@ export default function HomePanel() {
                     setBtnState({color: 'green', icon: <IconCheck size={16}/>});
                 } else {
                     if (recs && recs.data.record) {
-                        console.log(recs.data.record);
+                        console.log('data', recs.data.record);
                         const wOpts = [...new Set((recs.data.record as IRecord[]).map(item => item.withdrawalDesc))];
-                        console.log(wOpts);
+                        console.log('wopt', wOpts);
                         if (wOpts.length > 0) {
                             setWithdrawalOptions(wOpts);
                         }
@@ -222,7 +222,7 @@ export default function HomePanel() {
     const [programs, setPrograms] = useState<IProgramPopulated[] | null>(null);
 
     useEffect(() => {
-        axios.get('/api/column')
+        axiosInstance.get('/column')
             .then((res) => {
                 if (res.data && res.data.column) {
                     setColumns(res.data.column);
@@ -234,7 +234,7 @@ export default function HomePanel() {
             .finally(() => {
             });
 
-        axios.get('/api/category')
+        axiosInstance.get('/category')
             .then((res) => {
                 if (res.data && res.data.category) {
                     setCategories(res.data.category);
@@ -246,7 +246,7 @@ export default function HomePanel() {
             .finally(() => {
             });
 
-        axios.get('/api/program')
+        axiosInstance.get('/program')
             .then((res) => {
                 if (res.data && res.data.program) {
                     console.log('prog', res.data.program);
