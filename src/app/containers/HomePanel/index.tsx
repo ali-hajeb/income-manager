@@ -33,6 +33,13 @@ export default function HomePanel() {
     const [year, setYear] = useState<number | string>('');
     const [month, setMonth] = useState<typeof SHAMSI_MONTHS[number] | null>(null);
 
+    useEffect(() => {
+        if (selectedWithdrawal) {
+            setWithdrawalOptions([]);
+            setSelectedWithdrawal(null);
+        }
+    }, [month, year])
+
     const updateRecords = (record: IRecord) => {
         setRecords(records => {
             const updated = [...records];
@@ -53,25 +60,23 @@ export default function HomePanel() {
                 const _m = SHAMSI_MONTHS.findIndex(item => item === month);
                 console.log(month, _m, year);
                 const recs = await getRecord(_m, year);
-                if (selectedWithdrawal) {
-                    if (recs && recs.data.record) {
+                if (recs && recs.data.record) {
+                    if (selectedWithdrawal) {
                         setRecords((recs.data.record as IRecord[]).filter(item => item.withdrawalDesc === selectedWithdrawal));
                         setWithdrawalDesc(selectedWithdrawal);
-                    }
-                    setEditMode(true);
-                    setBtnState({color: 'green', icon: <IconCheck size={16}/>});
-                } else {
-                    if (recs && recs.data.record) {
+                        setEditMode(true);
+                        setBtnState({color: 'green', icon: <IconCheck size={16}/>});
+                    } else {
                         console.log('data', recs.data.record);
                         const wOpts = [...new Set((recs.data.record as IRecord[]).map(item => item.withdrawalDesc))];
                         console.log('wopt', wOpts);
-                        if (wOpts.length > 0) {
-                            setWithdrawalOptions(wOpts);
-                        }
+                        setWithdrawalOptions(wOpts || []);
+                        setSelectedWithdrawal(null)
                     }
-                    else {
-                        setWithdrawalOptions([]);
-                    }
+                } else {
+                    console.log('here');
+                    setWithdrawalOptions([]);
+                    setSelectedWithdrawal(null)
                 }
             }
         } catch (error) {
