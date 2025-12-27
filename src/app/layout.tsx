@@ -24,6 +24,12 @@ export default function RootLayout({
 }>) {
   return (
         <html lang="fa" dir="rtl">
+            <head>
+                <link rel="icon" href="/mali/favicon.ico" type="image/x-icon" />
+                <link rel="shortcut icon" href="/mali/favicon.ico" type="image/x-icon" />
+                <link rel="apple-touch-icon" href="/mali/apple-touch-icon.png" />
+                <link rel="manifest" href="/mali/site.webmanifest" />
+            </head>
             <body>
                 <DirectionProvider initialDirection="rtl">
                     <MantineProvider theme={theme}>
