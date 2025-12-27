@@ -7,8 +7,14 @@ import "./globals.css";
 const theme = createTheme({});
 
 export const metadata: Metadata = {
-  title: "SAMT | سامانه مدیریت تسهیم درآمد",
-  description: "سامانه مدیریت تسهیم درآمد",
+    title: "SAMT | سامانه مدیریت تسهیم درآمد",
+    description: "سامانه مدیریت تسهیم درآمد",
+    icons: {
+        icon: '/itrpt/favicon.ico',
+        shortcut: '/itrpt/favicon.ico',
+        apple: '/itrpt/apple-touch-icon.png',
+    },
+    manifest: '/itrpt/site.webmanifest'
 };
 
 export default function RootLayout({
