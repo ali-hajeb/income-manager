@@ -69,6 +69,9 @@ export default function HomePanel() {
                             setWithdrawalOptions(wOpts);
                         }
                     }
+                    else {
+                        setWithdrawalOptions([]);
+                    }
                 }
             }
         } catch (error) {
