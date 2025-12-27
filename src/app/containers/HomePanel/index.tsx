@@ -34,10 +34,8 @@ export default function HomePanel() {
     const [month, setMonth] = useState<typeof SHAMSI_MONTHS[number] | null>(null);
 
     useEffect(() => {
-        if (selectedWithdrawal) {
-            setWithdrawalOptions([]);
-            setSelectedWithdrawal(null);
-        }
+        setWithdrawalOptions([]);
+        setSelectedWithdrawal(null);
     }, [month, year])
 
     const updateRecords = (record: IRecord) => {
