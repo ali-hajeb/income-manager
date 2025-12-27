@@ -10,11 +10,11 @@ export const metadata: Metadata = {
     title: "SAMT | سامانه مدیریت تسهیم درآمد",
     description: "سامانه مدیریت تسهیم درآمد",
     icons: {
-        icon: '/itrpt/favicon.ico',
-        shortcut: '/itrpt/favicon.ico',
-        apple: '/itrpt/apple-touch-icon.png',
+        icon: '/mali/favicon.ico',
+        shortcut: '/mali/favicon.ico',
+        apple: '/mali/apple-touch-icon.png',
     },
-    manifest: '/itrpt/site.webmanifest'
+    manifest: '/mali/site.webmanifest'
 };
 
 export default function RootLayout({
