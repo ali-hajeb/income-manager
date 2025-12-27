@@ -15,6 +15,15 @@
       "purpose": "maskable"
     }
   ],
+  "start_url": "/mali/",
+  "screenshots": [
+        {
+            "src": "https://rpt.behums.ac.ir/screenshots/mali-rpt-sc.png",
+            "sizes": "1910x922",
+            "type": "image/png",
+            "form_factor": "wide"
+        }
+  ],
   "theme_color": "#f9f9f9",
   "background_color": "#228be6",
   "display": "standalone"
